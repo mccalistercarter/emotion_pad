@@ -2,7 +2,7 @@ import time
 from features.text_features import text_to_pad
 from features.audio_features import audio_to_pad
 from features.video_features import video_to_pad
-from fusion import fuse_pad
+from models.fusion_model import fuse_pad
 
 turn = {
     "text": "I’m really excited about this project!",

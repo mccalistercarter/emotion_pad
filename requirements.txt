@@ -1,5 +1,6 @@
 numpy
-librosa
-opencv-python
+librosa # for audio if needed
+scikit-learn # for machine learning utilities
+opencv-python # for image processing if needed
 transformers
 torch
