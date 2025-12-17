@@ -4,3 +4,4 @@ scikit-learn # for machine learning utilities
 opencv-python # for image processing if needed
 transformers
 torch
+joblib
