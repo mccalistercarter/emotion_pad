@@ -1,7 +1,12 @@
+os
 numpy
-librosa # for audio if needed
-scikit-learn # for machine learning utilities
-opencv-python # for image processing if needed
-transformers
-torch
+pandas
 joblib
+scikit-learn # for machine learning utilities
+librosa # for audio processing
+opencv-python # for video processing
+opencv-contrib-python
+deepface
+transformers
+tensorflow
+tf-keras

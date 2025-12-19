@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 from sklearn.model_selection import train_test_split
 from models.text_regressor import TextRegressor
 from models.audio_regressor import AudioRegressor
@@ -8,17 +9,23 @@ import joblib # for saving/loading models
 
 # PAD Mapping Dictionary using approximate values from studies for Audio and Video modalities
 emotion_to_pad = {
+    "joy":       [0.76, 0.48, 0.35],
+    "fear":      [-0.64, 0.60, -0.43],
     "neutral":   [0.0, 0.0, 0.0],
     "calm":      [0.4, -0.2, 0.3],
-    "happy":     [0.8, 0.6, 0.6],
-    "sad":       [-0.6, -0.4, -0.5],
-    "angry":     [-0.7, 0.9, 0.8],
+    "happy":     [0.76, 0.48, 0.35],
+    "sad":       [-0.63, -0.27, -0.33],
+    "sadness":   [-0.63, -0.27, -0.33],
+    "anger":     [-0.51, 0.59, 0.25],
+    "angry":     [-0.51, 0.59, 0.25],
     "fearful":   [-0.8, 0.8, -0.7],
-    "disgust":   [-0.6, 0.3, -0.6],
-    "surprised": [0.4, 0.9, 0.3]
+    "disgust":   [-0.6, 0.35, 0.11],
+    "surprised": [0.4, 0.9, 0.3],
+    "shame":     [-0.45, 0.30, -0.20],
+    "guilt":     [-0.45, 0.30, -0.15],
 }
 
-# RAVDESS emotion code mapping
+# RAVDESS emotion code mapping, for audio and video files
 
 ravdess_emotion_map = {
     "01": "neutral",
@@ -32,6 +39,7 @@ ravdess_emotion_map = {
 }
 
 # Helper function to load in data from RAVDESS dataset files for training on audio and visual
+
 def load_ravdess_data(file_list, extensions):
     # Paths will hold file paths and targets will hold corresponding PAD values
     paths, targets = [], []
@@ -50,27 +58,43 @@ def load_ravdess_data(file_list, extensions):
 
 # TEXT TRAINING
 
-# Training data for linear regression model for text PAD prediction
-texts = ["I am happy", "I am sad", "I am angry"]
-pad_targets_text = [
-    [0.8, 0.5, 0.6],
-    [-0.6, -0.4, -0.5],
-    [-0.7, 0.9, 0.8]
-]
+# Load text dataset for testing, ISEAR CSV
+def load_isear(sample_size=None):
+    # Only pulling the text and emotion rows and skipping malformed rows
+    df = pd.read_csv("data/text_data/isear.csv", sep="|", usecols = ["Field1", "SIT"], engine="python", on_bad_lines = "skip")
+
+    df = df.rename(columns={"Field1": "emotion", "SIT": "sentence"})
+
+    # Map emotions to PAD values using the function above
+    df["PAD"] = df["emotion"].map(emotion_to_pad)
+
+    if sample_size:
+        df = df.sample(n=sample_size, random_state=42)
+    
+    return df
+
+# Load in a sample of 500 for initial training for sake of time
+df = load_isear(sample_size=500)
+
+# Now have just three columns (emotion, sentence, and PAD)
+texts = df["sentence"].tolist()
+pad_targets_text = df["PAD"].tolist()
+
+# Create a train test split for text entries
+train_texts, test_texts, train_targets_text, test_targets_text = train_test_split(
+    texts, pad_targets_text, test_size = 0.2, random_state = 42)
 
 # Initialize and train the text regressor model
 regressor = TextRegressor()
-regressor.train(texts, pad_targets_text)
+regressor.train(train_texts, train_targets_text)
 
 # Save the trained text model for future use
 joblib.dump(regressor, "text_regressor_model.joblib")
 
-print("Prediction:", regressor.predict("I am excited"))
-
 # AUDIO TRAINING
 
 # Pull in the data using the function defined above
-audio_paths, pad_targets_audio = load_ravdess_data("ravdess_audio", [".wav"])
+audio_paths, pad_targets_audio = load_ravdess_data("data/audio_data", [".wav"])
 
 # Split into train/test sets
 train_audios, test_audios, train_targets_audio, test_targets_audio = train_test_split(
@@ -83,12 +107,10 @@ audio_regressor.train(train_audios, train_targets_audio)
 # Save the trained audio model for future use
 joblib.dump(audio_regressor, "audio_regressor_model.joblib")
 
-print("Audio Prediction:", audio_regressor.predict(test_audios[0]))
-
 # VIDEO TRAINING
 
 # Pull in the video data using the defined function as done above for audio
-video_paths, pad_targets_video = load_ravdess_data("ravdess_video", [".mp4"])
+video_paths, pad_targets_video = load_ravdess_data("data/video_data", [".mp4"])
 
 # Split into train/test sets, in this 80-20 split for train-test
 train_videos, test_videos, train_targets_video, test_targets_video = train_test_split(
@@ -101,4 +123,4 @@ video_regressor.train(train_videos, train_targets_video)
 # Save the trained video model for future use
 joblib.dump(video_regressor, "video_regressor_model.joblib")
 
-print("Video Prediction:", video_regressor.predict(test_videos[0]))
+print("Training complete. Models saved for text, audio, and video modalities.")
