@@ -1,10 +1,9 @@
-os
 numpy
 pandas
 joblib
-scikit-learn # for machine learning utilities
-librosa # for audio processing
-opencv-python # for video processing
+scikit-learn
+librosa 
+opencv-python
 opencv-contrib-python
 fer
 tensorflow

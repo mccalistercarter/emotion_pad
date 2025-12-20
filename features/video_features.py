@@ -4,28 +4,32 @@ from fer import FER
 
 detector = FER()
 
-def get_video_features(video_path):
+def get_video_features(video_path, sample_fps=1, max_seconds=None, resize_dim=(160,160)):
     # Need to implement video feature extraction
     # Read the video file and break into frames
-    cap = cv2.VideoCapture(video_path)\
-    
+    cap = cv2.VideoCapture(video_path)
     frame_features = []
 
     # Only sampling 1fps for sake of efficiency, would need imporvement for accuracy
     fps = cap.get(cv2.CAP_PROP_FPS)
-    # Get one frame every second
-    frame_interval = int(fps) if fps > 0 else 30  # Default to 30 if unkown
+    if fps <= 0:
+        fps = 30 # Default if unknown
 
+    frame_interval = max(1, int(fps / sample_fps))
     frame_idx = 0
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    while True:
+    max_frames = int(min(total_frames, (max_seconds * fps) if max_seconds else total_frames))
+
+    while frame_idx < max_frames:
         ret, frame = cap.read()
         if not ret:
             break
         
         if frame_idx % frame_interval == 0:
             try: # Replaced deepface with FER to try and make it faster
-                results = detector.detect_emotions(frame)
+                frame_resized = cv2.resize(frame, resize_dim)
+                results = detector.detect_emotions(frame_resized)
                 if results:
                     emotions = results[0]["emotions"] # Dict of 7 emotion probabilities
                     emotion_vector = np.array(list(emotions.values()))

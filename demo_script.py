@@ -17,7 +17,7 @@ def main():
     
     # Example inputs
 
-    example_text = "data/demo_data/demo.tx"
+    example_text = "data/demo_data/demo.txt"
     example_audio_path = "data/demo_data/demo_ex1_happy.wav"
     example_video_path = "data/demo_data/demo_ex1_happy.mp4"
 
