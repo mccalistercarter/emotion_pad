@@ -1,9 +1,7 @@
 import joblib
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from train import load_ravdess_data
-from train import load_isear
-from train import emotion_to_pad
+from train import load_ravdess_data, load_isear
 
 def main():
 
@@ -16,7 +14,7 @@ def main():
     pad_targets_text = df["PAD"].tolist()
 
     # Create a train test split for text entries
-    train_texts, test_texts, train_targets_text, test_targets_text = train_test_split(
+    _, test_texts, _, test_targets_text = train_test_split(
         texts, pad_targets_text, test_size = 0.2, random_state = 42)
 
     try:

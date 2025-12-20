@@ -7,6 +7,9 @@ def fuse_pad(pads):
     if not valid:
         return (0, 0, 0)
     
+    # Have to flatten each vector
+    valid = [np.array(p).flatten() for p in valid]
+
     result = np.mean(valid, axis=0)
 
     # Return plain float rounded off to two decimal places

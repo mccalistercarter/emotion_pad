@@ -1,11 +1,14 @@
 import cv2
 import numpy as np
-from deepface import DeepFace
+from fer import FER
+
+detector = FER()
 
 def get_video_features(video_path):
     # Need to implement video feature extraction
     # Read the video file and break into frames
-    cap = cv2.VideoCapture(video_path)
+    cap = cv2.VideoCapture(video_path)\
+    
     frame_features = []
 
     # Only sampling 1fps for sake of efficiency, would need imporvement for accuracy
@@ -21,14 +24,12 @@ def get_video_features(video_path):
             break
         
         if frame_idx % frame_interval == 0:
-            try:
-                # Run analysis on a frame to extract emotion features
-                analysis = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False)
-                emotions = analysis[0]['emotion']
-                # Convert to a fixed order vector
-                emotion_vector = np.array([list(emotions.values())])
-                # Append the emotion vector results to a frame features list
-                frame_features.append(emotion_vector.flatten())
+            try: # Replaced deepface with FER to try and make it faster
+                results = detector.detect_emotions(frame)
+                if results:
+                    emotions = results[0]["emotions"] # Dict of 7 emotion probabilities
+                    emotion_vector = np.array(list(emotions.values()))
+                    frame_features.append(emotion_vector)
             except:
                 # Skip frames where analysis fails
                 pass 

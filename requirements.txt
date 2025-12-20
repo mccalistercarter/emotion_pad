@@ -6,7 +6,7 @@ scikit-learn # for machine learning utilities
 librosa # for audio processing
 opencv-python # for video processing
 opencv-contrib-python
-deepface
-transformers
+fer
 tensorflow
 tf-keras
+transformers

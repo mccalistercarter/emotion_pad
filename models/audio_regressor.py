@@ -2,7 +2,6 @@
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 import numpy as np
-import joblib
 from features.audio_features import get_audio_features
 
 class AudioRegressor:
