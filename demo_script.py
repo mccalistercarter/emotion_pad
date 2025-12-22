@@ -1,6 +1,10 @@
-import time
 import joblib
+import time
+import numpy as np
+from train import load_ravdess_data, load_isear
 from models.fusion_model import fuse_pad
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error
 
 def main():
     print("Multimodal Emotion Recognition Demo")
@@ -15,46 +19,52 @@ def main():
         print("Error loading models: ", e)
         return
     
-    # Example inputs
+    # Load in the data as used in the train and infer files
+    df_text = load_isear(sample_size=2500)
+    texts = df_text["sentence"].tolist()
+    pad_targets_text = df_text["PAD"].tolist()
+    _, test_texts, _, test_targets_text = train_test_split(
+        texts, pad_targets_text, test_size=0.2, random_state=42)
 
-    example_text = "data/demo_data/demo.txt"
-    example_audio_path = "data/demo_data/demo_ex1_happy.wav"
-    example_video_path = "data/demo_data/demo_ex1_happy.mp4"
-
-    print("Text Input: ", example_text)
-    print("Audio Input: ", example_audio_path)
-    print("Video Input: ", example_video_path)
-
-    # Run the predictions using the models
-    total_start = time.time()
-
-    try:
-        t0 = time.time()
-        text_pad = text_model.predict([example_text])[0]
-        text_time = (time.time() - t0) * 1000
-        t0 = time.time()
-        audio_pad = audio_model.predict(example_audio_path)[0]
-        audio_time = (time.time() - t0) * 1000
-        t0 = time.time()
-        video_pad = video_model.predict(example_video_path)[0]
-        video_time = (time.time() - t0) * 1000
-    except Exception as e:
-        print("Error during prediction: ", e)
-        return
+    audio_paths, pad_targets_audio = load_ravdess_data("data/audio_data", [".wav"])
+    _, test_audios, _, test_targets_audio = train_test_split(
+        audio_paths, pad_targets_audio, test_size=0.2, random_state=42)
     
-    # Print the individual predictions
-    print(f"Text Pad: {text_pad}    ({text_time:.2f} ms)")
-    print(f"Audio Pad: {audio_pad}   ({audio_time:.2f} ms)")
-    print(f"Video Pad: {video_pad}  ({video_time:.2f} ms)")
+    video_paths, pad_targets_video = load_ravdess_data("data/video_data", [".mp4"])
+    _, test_videos, _, test_targets_video = train_test_split(
+        video_paths, pad_targets_video, test_size=0.2, random_state=42)
 
-    # Fusion using the simple function defined
-    fused_pad = fuse_pad([text_pad, audio_pad, video_pad])
+    # Demo the first sample only
+    i = 0
 
-    total_time = (time.time() - total_start) * 1000
+    # Text
+    example_text = test_texts[i]
+    actual_text = test_targets_text[i]
+    pred_text = text_model.predict([example_text])[0]
 
-    print("Fused PAD (Average of all Modalities): ", fused_pad)
-    print(f"Total Runtime: {total_time:.2f} ms")
-    print("Demo complete.")
+    # Audio
+    example_audio = test_audios[i]
+    actual_audio = test_targets_audio[i]
+    pred_audio = audio_model.predict(example_audio)[0]
+
+    # Video
+    example_video = test_videos[i]
+    actual_video = test_targets_video[i]
+    pred_video = video_model.predict(example_video)[0]
+
+    # Fuse predictions
+    fused_pred = fuse_pad([pred_text, pred_audio, pred_video])
+    fused_actual = np.mean([actual_text, actual_audio, actual_video], axis=0)
+
+    # Print results
+    print(f"Text PAD:   Predicted {pred_text}, Actual {actual_text}")
+    print(f"Audio PAD:  Predicted {pred_audio}, Actual {actual_audio}")
+    print(f'Video PAD:  Predicted {pred_video}, Actual {actual_video}')
+    print(f"Fused PAD:  Predicted {fused_pred}, Actual {fused_actual}")
+    print(f"Fused MAE:  {mean_absolute_error(fused_actual, fused_pred):.4f}")
+
+    print("Demo complete. Additional examples can be evaluated similarly if desired.")
+
 
 if __name__ == "__main__":
     main()

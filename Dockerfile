@@ -12,10 +12,8 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip
+# Upgrade pip and install python dependencies
 RUN python -m pip install --upgrade pip
-
-
 RUN pip install --no-cache-dir -r requirements.txt
 
 ENTRYPOINT ["python"]

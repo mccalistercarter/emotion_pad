@@ -1,0 +1,5 @@
+# Python virtual environment
+.venv/
+__pycache__/
+
+# Initally thought of not including data folders but left in for use in scripts

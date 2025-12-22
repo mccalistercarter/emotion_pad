@@ -14,7 +14,7 @@ def main():
     # TEXT TRAINING
 
     # Load in a sample of 500 for initial training for sake of time
-    df = load_isear(sample_size=500)
+    df = load_isear(sample_size=2500)
 
     # Now have just three columns (emotion, sentence, and PAD)
     texts = df["sentence"].tolist()
