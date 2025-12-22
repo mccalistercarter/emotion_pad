@@ -9,7 +9,7 @@ After loading can be ran using the normal run code below.
 docker build -t pad-emotion-recognition .
 
 ## Run
-docker run --rm pad-emotion-recogntion
+docker run --rm pad-emotion-recognition
 
 ##  Overview
 This project implements a real-time multimodal emotional recognition system for social human-robot interaction. The system will predict emotional state from a converstaional turn using the PAD (Pleasure, Arousal, Dominance) model. Verbal, vocal, and facial cues are processed and fused to produce continuous PAD values.
